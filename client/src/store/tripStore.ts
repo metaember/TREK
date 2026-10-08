@@ -61,6 +61,10 @@ export interface TripStoreState
   files: TripFile[]
   reservations: Reservation[]
   selectedDayId: number | null
+  // Last useful camera bounds from the trip map. Place search uses this before
+  // itinerary-derived hints, so a search follows the area the traveller is
+  // actually looking at rather than the centre of a multi-city trip.
+  mapViewport: { south: number; west: number; north: number; east: number } | null
   // Places filter (list + map markers). Lives here, not in the sidebar, so the
   // applied filter and the filter UI can never drift apart when the Plan tab
   // unmounts and remounts (#1541).
@@ -73,6 +77,7 @@ export interface TripStoreState
   error: string | null
 
   setSelectedDay: (dayId: number | null) => void
+  setMapViewport: (viewport: { south: number; west: number; north: number; east: number }) => void
   setPlacesFilter: (filter: string) => void
   setPlacesCategoryFilter: (categoryIds: Set<string>) => void
   setPlacesRatingFilter: (floor: PlacesRatingFloor) => void
@@ -102,6 +107,7 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
   files: [],
   reservations: [],
   selectedDayId: null,
+  mapViewport: null,
   placesFilter: 'all',
   placesCategoryFilter: new Set<string>(),
   placesRatingFilter: 'all',
@@ -109,6 +115,7 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
   error: null,
 
   setSelectedDay: (dayId: number | null) => set({ selectedDayId: dayId }),
+  setMapViewport: (mapViewport) => set({ mapViewport }),
   setPlacesFilter: (filter: string) => set({ placesFilter: filter }),
   setPlacesCategoryFilter: (categoryIds: Set<string>) => set({ placesCategoryFilter: categoryIds }),
   setPlacesRatingFilter: (floor: PlacesRatingFloor) => set({ placesRatingFilter: floor }),
@@ -131,6 +138,7 @@ export const useTripStore = create<TripStoreState>((set, get) => ({
     files: [],
     reservations: [],
     selectedDayId: null,
+    mapViewport: null,
     placesFilter: 'all',
     placesCategoryFilter: new Set<string>(),
     placesRatingFilter: 'all',

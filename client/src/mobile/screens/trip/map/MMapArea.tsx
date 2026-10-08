@@ -165,6 +165,11 @@ function holdFocus(
  */
 export default function MMapArea({ planner, shell }: MMapAreaProps) {
   const poi = usePoiExplore()
+  const setMapViewport = useTripStore(s => s.setMapViewport)
+  const handleViewportChange = useCallback((bbox: { south: number; west: number; north: number; east: number }) => {
+    poi.onViewportChange(bbox)
+    setMapViewport(bbox)
+  }, [poi.onViewportChange, setMapViewport])
   const [glMap, setGlMap] = useState<CompassMap | null>(null)
   const poiPillEnabled = useSettingsStore(s => s.settings.map_poi_pill_enabled) !== false
   const distanceUnit = useSettingsStore(s => s.settings.distance_unit)
@@ -405,7 +410,7 @@ export default function MMapArea({ planner, shell }: MMapAreaProps) {
         onPoiClick={onStage
           ? planner.handlePoiClick
           : marker => planner.openAddPlaceFromPoi(marker, planner.selectedDayId)}
-        onViewportChange={poi.onViewportChange}
+        onViewportChange={handleViewportChange}
         onMapReady={setGlMap}
         // Other ways of driving the leg the stage asked about, and the one lit up.
         alternativeRoutes={onStage ? planner.alternativeOverlays : undefined}

@@ -65,13 +65,15 @@ function serverDays() {
 
 describe('tripStore', () => {
   describe('selectors and filters', () => {
-    it('FE-TSTORE-001: setSelectedDay, setPlacesFilter and setPlacesCategoryFilter write through', () => {
+    it('FE-TSTORE-001: trip-scoped selectors and filters write through', () => {
       useTripStore.getState().setSelectedDay(42);
+      useTripStore.getState().setMapViewport({ south: 38.84, west: 1.17, north: 39.12, east: 1.60 });
       useTripStore.getState().setPlacesFilter('unplanned');
       useTripStore.getState().setPlacesCategoryFilter(new Set(['3', '7']));
 
       const state = useTripStore.getState();
       expect(state.selectedDayId).toBe(42);
+      expect(state.mapViewport).toEqual({ south: 38.84, west: 1.17, north: 39.12, east: 1.60 });
       expect(state.placesFilter).toBe('unplanned');
       expect([...state.placesCategoryFilter]).toEqual(['3', '7']);
 
@@ -96,6 +98,7 @@ describe('tripStore', () => {
         tags: [buildTag({ id: 5 })],
         categories: [buildCategory({ id: 6 })],
         selectedDayId: 1,
+        mapViewport: { south: 38.84, west: 1.17, north: 39.12, east: 1.60 },
         placesFilter: 'unplanned',
         placesCategoryFilter: new Set(['3']),
         error: 'stale error',
@@ -115,6 +118,7 @@ describe('tripStore', () => {
       expect(state.files).toEqual([]);
       expect(state.reservations).toEqual([]);
       expect(state.selectedDayId).toBeNull();
+      expect(state.mapViewport).toBeNull();
       expect(state.placesFilter).toBe('all');
       expect(state.placesCategoryFilter.size).toBe(0);
       expect(state.error).toBeNull();

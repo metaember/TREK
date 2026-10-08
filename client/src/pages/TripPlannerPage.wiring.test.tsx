@@ -659,6 +659,7 @@ describe('TripPlannerPage — shell', () => {
     hookState = { ...hookState, activeTab: 'plan' }
     view.rerender(<TripPlannerPage />)
     act(() => props('map').onViewportChange({ south: 46.9, west: 10.8, north: 47.5, east: 12.1 }))
+    expect(useTripStore.getState().mapViewport).toEqual({ south: 46.9, west: 10.8, north: 47.5, east: 12.1 })
     plannerActions.mode = { type: 'neutral' }
     plannerActions.waypoints = []
     hookState = { ...hookState, activeTab: 'tour-planner' }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { TourListItem } from '@trek/shared'
 import { usePoiExplore, type Bbox } from '../../components/Map/usePoiExplore'
 import { useTourPlanner } from '../../components/Tours/planner/useTourPlanner'
+import { useTripStore } from '../../store/tripStore'
 import { useTripPlanner } from './useTripPlanner'
 
 export function useTripPlannerPage() {
@@ -86,12 +87,14 @@ export function useTripPlannerPage() {
   }, [activeTab, closeGpxTour])
 
   const poi = usePoiExplore()
+  const setMapViewport = useTripStore(state => state.setMapViewport)
   const poiViewportChangeRef = useRef(poi.onViewportChange)
   poiViewportChangeRef.current = poi.onViewportChange
   const captureViewport = useCallback((bounds: Bbox) => {
     lastPlanMapViewportRef.current = bounds
     poiViewportChangeRef.current(bounds)
-  }, [])
+    setMapViewport(bounds)
+  }, [setMapViewport])
 
   const onSelectTour = (tour: TourListItem | null, opener?: HTMLElement) => {
     tourDetailOpenerRef.current = tour && opener ? { placeId: tour.place_id, element: opener } : null

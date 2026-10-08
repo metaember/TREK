@@ -10,7 +10,7 @@ const KYOTO_B = { id: 2, lat: 34.9949, lng: 135.7850 };   // Kiyomizu-dera, ~2 k
 const TOKIO = { id: 3, lat: 35.6762, lng: 139.6503 };     // ~370 km entfernt
 
 function seed(state: Record<string, unknown>) {
-  useTripStore.setState({ places: [], assignments: {}, selectedDayId: null, ...state } as never);
+  useTripStore.setState({ places: [], assignments: {}, selectedDayId: null, mapViewport: null, ...state } as never);
 }
 
 afterEach(() => seed({}));
@@ -58,6 +58,33 @@ describe('useLocationBias', () => {
     const { box } = renderHook(() => useLocationBias()).result.current;
     expect(box).toBeDefined();
     // Tokio darf nicht in der Box liegen, sonst zeigt der Hinweis ins Leere.
+    expect(box!.high.lng).toBeLessThan(TOKIO.lng);
+    expect(radiusKm(box!)).toBeLessThan(5);
+  });
+
+  it('nimmt den sichtbaren Kartenausschnitt vor den Orten der Reise', () => {
+    // Die Reise reicht von Kyoto bis Tokio, die Karte zeigt aber gerade Ibiza.
+    seed({
+      places: [KYOTO_A, TOKIO],
+      mapViewport: { south: 38.84, west: 1.17, north: 39.12, east: 1.60 },
+    });
+    const { box, point } = renderHook(() => useLocationBias()).result.current;
+    expect(box).toEqual({
+      low: { lat: 38.84, lng: 1.17 },
+      high: { lat: 39.12, lng: 1.60 },
+    });
+    expect(point!.lat).toBeCloseTo(38.98, 6);
+    expect(point!.lng).toBeCloseTo(1.385, 6);
+  });
+
+  it('faellt bei einem zu weiten Kartenausschnitt auf den Reisetag zurueck', () => {
+    seed({
+      places: [KYOTO_A, KYOTO_B, TOKIO],
+      assignments: { '7': [{ place_id: 1 }, { place_id: 2 }] },
+      selectedDayId: 7,
+      mapViewport: { south: 30, west: 125, north: 46, east: 146 },
+    });
+    const { box } = renderHook(() => useLocationBias()).result.current;
     expect(box!.high.lng).toBeLessThan(TOKIO.lng);
     expect(radiusKm(box!)).toBeLessThan(5);
   });

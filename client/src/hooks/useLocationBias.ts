@@ -99,16 +99,34 @@ export function pointFromBox(box: LocationBiasBox | undefined): LocationBiasPoin
  * The hint for the place search, in both shapes the two endpoints want.
  *
  * Preference order, narrowest first:
- *   1. the places of the day currently open — this is the area being planned
- *   2. the trip's places, but only if they still fit inside one region
+ *   1. the useful area currently visible on the trip map
+ *   2. the places of the day currently open — this is the area being planned
+ *   3. the trip's places, but only if they still fit inside one region
  * Anything wider is dropped: no hint beats a hint pointing at open country.
  */
 export function useLocationBias(): { box?: LocationBiasBox; point?: LocationBiasPoint } {
   const places = useTripStore((s) => s.places)
   const assignments = useTripStore((s) => s.assignments)
   const selectedDayId = useTripStore((s) => s.selectedDayId)
+  const mapViewport = useTripStore((s) => s.mapViewport)
 
   return useMemo(() => {
+    if (mapViewport) {
+      const viewportBox: LocationBiasBox = {
+        low: { lat: mapViewport.south, lng: mapViewport.west },
+        high: { lat: mapViewport.north, lng: mapViewport.east },
+      }
+      const viewportRadius = radiusKm(viewportBox)
+      if (
+        mapViewport.south <= mapViewport.north &&
+        mapViewport.west <= mapViewport.east &&
+        Number.isFinite(viewportRadius) &&
+        viewportRadius <= MAX_RADIUS_KM
+      ) {
+        return { box: viewportBox, point: pointFromBox(viewportBox) }
+      }
+    }
+
     const alle = places || []
 
     // The day being planned. Places reach a day through assignments, so the
@@ -125,5 +143,5 @@ export function useLocationBias(): { box?: LocationBiasBox; point?: LocationBias
     const box = boxFromCoords(quelle)
     if (!box || radiusKm(box) > MAX_RADIUS_KM) return {}
     return { box, point: pointFromBox(box) }
-  }, [places, assignments, selectedDayId])
+  }, [places, assignments, selectedDayId, mapViewport])
 }

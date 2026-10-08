@@ -187,6 +187,16 @@ beforeEach(() => {
 })
 
 describe('MMapArea', () => {
+  it('FE-MOB-MAPAREA-044: the visible map area is retained for place search', () => {
+    renderArea()
+    const bbox = { south: 38.84, west: 1.17, north: 39.12, east: 1.60 }
+
+    act(() => { (mocks.props.onViewportChange as (value: typeof bbox) => void)(bbox) })
+
+    expect(mocks.poi.onViewportChange).toHaveBeenCalledWith(bbox)
+    expect(useTripStore.getState().mapViewport).toEqual(bbox)
+  })
+
   it('FE-MOB-MAPAREA-001: the POI bar takes the full width between the screen margins', () => {
     renderArea()
 
